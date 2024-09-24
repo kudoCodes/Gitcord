@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, ChannelType } = require("discord.js");
+const { deleteRepo } = require("../../index.js");
 
 const commandData = new SlashCommandBuilder()
   .setName('unsub')
@@ -40,6 +41,8 @@ async function execute(interaction) {
 
   // Send a single message to the user after all operations
   await interaction.reply(`Github repository '${category.name}' has been removed from the server.`);
+
+  await deleteRepo(repoName);
 }
 
 // Export the command data and execute function

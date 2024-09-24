@@ -231,6 +231,13 @@ async function addValues(repoName, webhookUrl, guildId)
 	console.log(`Repo info populated for ${repoName}:`);
 }
 
+async function deleteRepo(repoName)
+{
+	const projection = {[repoName] : {'$exists': 1}}; // Use square brackets for dynamic field name
+	await collection.deleteOne(projection);
+}
+
+exports.deleteRepo = deleteRepo;
 exports.findWebhook = findWebhook;
 exports.addValues = addValues;
 exports.findGuildId = findGuildId;
