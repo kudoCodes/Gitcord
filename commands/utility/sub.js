@@ -1,14 +1,26 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, ChannelType } = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('sub')
         .setDescription("acknowleges your existence")
         .addStringOption(option =>
-            option.setName('repolink')
-                .setDescription('The input to echo back')
+            option.setName('reponame')
+                .setDescription('create category for your github')
+                .setMinLength(1)
+                .setMaxLength(25)
                 .setRequired(true)),
     async execute(interaction) {
-        await interaction.reply(interaction.options.getString('repolink'));
+        const name = interaction.options.getString('reponame');
+        const category = await interaction.guild.channels.create({
+            name: name,
+            type: ChannelType.GuildCategory,
+        });
+        const allChannel = await interaction.guild.channels.create({
+            name: 'all',
+            type: ChannelType.GuildText,
+            parent: category
+        })
+        await interaction.reply(`Init repo ${name}, channel ID is ${allChannel.id}`);
     },
 };
