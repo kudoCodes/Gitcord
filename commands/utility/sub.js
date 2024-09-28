@@ -21,6 +21,7 @@ module.exports = {
             type: ChannelType.GuildText,
             parent: category
         })
-        await interaction.reply(`Init repo ${name}, channel ID is ${allChannel.id}`);
+        await allChannel.send(`Init repo ${name}, channel ID is ${allChannel.id}`);
+        await interaction.reply(`Repo ${name} created`)
     },
 };
