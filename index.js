@@ -22,7 +22,7 @@ client.once('ready', async () => {
         });
 
         // Construct the webhook URL
-        const webhookUrl = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}`;
+        const webhookUrl = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}/github`;
         console.log(`Webhook created! URL: ${webhookUrl}`);
 
         // Optionally, send the URL in a Discord message
