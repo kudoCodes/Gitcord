@@ -39,7 +39,6 @@ for (const folder of commandFolders) {
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
-	console.log("\n\n\n\n ALL GOO \n\n\n");
 
 	const command = interaction.client.commands.get(interaction.commandName);
 
