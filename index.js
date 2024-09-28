@@ -5,14 +5,34 @@ const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
 
 // Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 
 // When the client is ready, run this code (only once).
-// The distinction between `client: Client<boolean>` and `readyClient: Client<true>` is important for TypeScript developers.
-// It makes some properties non-nullable.
-client.once(Events.ClientReady, readyClient => {
-	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+client.once('ready', async () => {
+    console.log('Bot is online!');
+
+    try {
+        // Fetch the specific channel where you want to create the webhook
+        const channel = await client.channels.fetch('1289620066333360249');
+
+        // Create the webhook
+        const webhook = await channel.createWebhook({
+            name: 'GitCord Webhook', // Webhook name
+            reason: 'Webhook for GitHub integration' // Reason for creating the webhook
+        });
+
+        // Construct the webhook URL
+        const webhookUrl = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}`;
+        console.log(`Webhook created! URL: ${webhookUrl}`);
+
+        // Optionally, send the URL in a Discord message
+        await channel.send(`Webhook URL for GitHub integration: ${webhookUrl}`);
+
+    } catch (error) {
+        console.error('Error creating webhook:', error);
+    }
 });
+
 
 // Log in to Discord with your client's token
 client.login(token);

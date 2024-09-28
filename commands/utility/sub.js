@@ -23,5 +23,17 @@ module.exports = {
         })
         await allChannel.send(`Init repo ${name}, channel ID is ${allChannel.id}`);
         await interaction.reply(`Repo ${name} created`)
+
+        const webhook = await allChannel.createWebhook({
+            name: 'GitCord Webhook', // Webhook name
+            reason: 'Webhook for GitHub integration' // Reason for creating the webhook
+        });
+    
+        // Construct the webhook URL
+        const webhookUrl = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}`;
+        console.log(`Webhook created! URL: ${webhookUrl}`);
+    
+        // Optionally, send the URL in a Discord message
+        await allChannel.send(`Webhook URL for GitHub integration: ${webhookUrl}`);
     },
 };
