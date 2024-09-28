@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.json');
+const { token, allChannelID } = require('./config.json');
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
@@ -10,27 +10,6 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 // When the client is ready, run this code (only once).
 client.once('ready', async () => {
     console.log('Bot is online!');
-
-    try {
-        // Fetch the specific channel where you want to create the webhook
-        const channel = await client.channels.fetch('1289620066333360249');
-
-        // Create the webhook
-        const webhook = await channel.createWebhook({
-            name: 'GitCord Webhook', // Webhook name
-            reason: 'Webhook for GitHub integration' // Reason for creating the webhook
-        });
-
-        // Construct the webhook URL
-        const webhookUrl = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}/github`;
-        console.log(`Webhook created! URL: ${webhookUrl}`);
-
-        // Optionally, send the URL in a Discord message
-        await channel.send(`Webhook URL for GitHub integration: ${webhookUrl}`);
-
-    } catch (error) {
-        console.error('Error creating webhook:', error);
-    }
 });
 
 
@@ -78,4 +57,32 @@ client.on(Events.InteractionCreate, async interaction => {
 
 		}
 	}
+});
+
+
+const { getAllChannel } = require('./commands/utility/sub.js');
+
+client.on(Events.MessageCreate, async message => {
+	// Define the specific channel ID
+
+
+	// UNCOMMENT THIS WHEN TIME TO DEMO
+
+
+	// const allChannel = getAllChannel();
+	// if (!allChannel)
+	// {
+	// 	console.error("allChannel is not defined");
+	// 	return;
+	// }
+
+	// const specificChannelId = allChannel.id;
+
+	// COMMENT THIS OUT WHEN TIME TO DEMO
+	specificChannelId = allChannelID;
+
+
+	if (message.channel.id !== specificChannelId) return;
+	
+	console.log(message);
 });
