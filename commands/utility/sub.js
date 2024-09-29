@@ -16,9 +16,10 @@ const commandData = new SlashCommandBuilder()
 
 let allChannel; // Declare allChannel here to export it later
 let webhookUrl; // Declare webhookUrl here to export it later
+let repoName;
 async function execute(interaction) {
     try {
-        const name = interaction.options.getString('reponame');
+        repoName = interaction.options.getString('reponame');
 
         // Create the category
         const category = await interaction.guild.channels.create({
@@ -27,6 +28,7 @@ async function execute(interaction) {
         });
 
         // Create the text channel inside the category
+        
         allChannel = await interaction.guild.channels.create({
             name: 'all',
             type: ChannelType.GuildText,
@@ -74,8 +76,12 @@ function getWebhookUrl() {
     return webhookUrl;
 }
 
+function getRepoName(){
+    return repoName;
+}
 // Export the command data, execute function, and allChannel object
 exports.data = commandData;
 exports.execute = execute;
 exports.getAllChannel = getAllChannel;
 exports.getWebhookUrl = getWebhookUrl;
+exports.getRepoName = getRepoName;
