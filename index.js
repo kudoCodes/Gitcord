@@ -5,10 +5,9 @@ const express = require('express');
 const axios = require('axios');
 const bodyParser = require('body-parser');
 const { Client, Collection, Events, GatewayIntentBits, EmbedBuilder, PermissionsBitField, ChannelType } = require('discord.js');
-const { token, allChannelID, dbUrl, dbName, collectionName } = require('./config.json');
+const { token, dbUrl, dbName, collectionName } = require('./config.json');
 const { MongoClient } = require("mongodb");
-const { permission } = require('node:process');
-const { channel } = require('node:diagnostics_channel');
+const { ok } = require('node:assert');
 
 let collection;
 async function run()
@@ -26,22 +25,30 @@ async function run()
 
 	app.use(bodyParser.json());
 	
-	const { getWebhookUrl } = require('./commands/utility/sub.js');
 	app.post('/', async (req, res) => {
 		const payload = req.body;
-	
+
+		if (!payload || !payload.ref) {
+			console.error('No payload received, prob init webhook');
+			return res.status(200).send('No payload received');
+		}
 		console.log('GitHub webhook payload received:');
 		// Extract relevant information from the GitHub payload
 		const { pusher, repository, ref, head_commit, deleted } = payload;
 		const branch = ref.split('/').pop(); // Get branch name
-		const commitMessage = head_commit ? head_commit.message : 'No commit message provided, probably a branch deletion';
-		const author = pusher.name;
+		let commitMessage = head_commit ? head_commit.message : 'No commit message provided';
+		if (deleted)
+		{
+			commitMessage = 'Branch deletion ' + branch;
+		}
+		const author = pusher ? pusher.name : payload.sender.login;
 	
 		// Construct a message for Discord
 		const discordEmbed = new EmbedBuilder()
 			.setColor('#00ff00')
-			.setTitle(`New Push to ${repository.name}`)
+			.setTitle(`New Event on ${repository.name}`)
 			.setDescription(`Branch: ${branch}\nAuthor: ${author}\nMessage: ${commitMessage}`)
+			.setURL(head_commit ? head_commit.url : repository.html_url)
 			.setFooter({ text: 'GitHub -> Discord Integration' })
 			.setTimestamp();
 	
@@ -61,7 +68,7 @@ async function run()
 			return res.status(400).send("No guild found for " + guildId);
 		}
 		//Check if channel for branch exists
-		let branchChannel = guild.channels.cache.find(channel => channel.name === branch && channel.type === ChannelType.GuildText);
+		let branchChannel = guild.channels.cache.find(channel => channel.name === branch && channel.type === ChannelType.GuildText && channel.parent.name === repository.name);
 		console.log("Branch channel: " + branchChannel);
 		const categoryChannel = guild.channels.cache.find(channel => channel.type === ChannelType.GuildCategory && channel.name === repository.name);
 		if (deleted)

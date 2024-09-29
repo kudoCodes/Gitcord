@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, ChannelType, EmbedBuilder } = require("discord.js");
-const { findWebhook, addValues, findGuildId } = require("../../index.js");
+const { findWebhook, addValues } = require("../../index.js");
 
 // Array of colors from your logo for the gradient effect
 const colors = ['#FF7F50', '#87CEEB', '#FF69B4', '#FFD700', '#ADFF2F']; // Customize these as per your logo
@@ -76,20 +76,7 @@ async function execute(interaction) {
     }
 }
 
-function getAllChannel() {
-    return allChannel;
-}
 
-function getWebhookUrl() {
-    return webhookUrl;
-}
-
-function getRepoName(){
-    return repoName;
-}
-// Export the command data, execute function, and allChannel object
+// Export the command data, execute function
 exports.data = commandData;
 exports.execute = execute;
-exports.getAllChannel = getAllChannel;
-exports.getWebhookUrl = getWebhookUrl;
-exports.getRepoName = getRepoName;
