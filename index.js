@@ -31,11 +31,10 @@ async function run()
 		const payload = req.body;
 	
 		console.log('GitHub webhook payload received:');
-	
 		// Extract relevant information from the GitHub payload
-		const { pusher, repository, ref, head_commit } = payload;
+		const { pusher, repository, ref, head_commit, deleted } = payload;
 		const branch = ref.split('/').pop(); // Get branch name
-		const commitMessage = head_commit.message;
+		const commitMessage = head_commit ? head_commit.message : 'No commit message provided, probably a branch deletion';
 		const author = pusher.name;
 	
 		// Construct a message for Discord
@@ -61,32 +60,42 @@ async function run()
 			console.error("No guild found for " + guildId);
 			return res.status(400).send("No guild found for " + guildId);
 		}
-		//Check if channel for brnach exists
-		let branchChannel = guild.channels.cache.find(channel => channel.name === branch && channel.type === 'GUILD_TEXT');
+		//Check if channel for branch exists
+		let branchChannel = guild.channels.cache.find(channel => channel.name === branch && channel.type === ChannelType.GuildText);
+		console.log("Branch channel: " + branchChannel);
 		const categoryChannel = guild.channels.cache.find(channel => channel.type === ChannelType.GuildCategory && channel.name === repository.name);
-		if(!branchChannel){
-			try{
-				branchChannel = await guild.channels.create({
-					name: branch,
-					type: ChannelType.GuildText,
-					parent: categoryChannel.id,
-				});
-				console.log("Channel created: ${branchChannel.name}");
-			}catch(error){
-				console.error("Error creating channel: "+ error);
-				return res.status(400).send("Error creating channel: ${error}");
+		if (deleted)
+		{
+			console.log('Branch deleted, deleting channel');
+			await branchChannel.delete();
+		}
+		else
+		{
+			if (!branchChannel)
+			{
+				try{
+					branchChannel = await guild.channels.create({
+						name: branch,
+						type: ChannelType.GuildText,
+						parent: categoryChannel.id,
+					});
+					console.log("Channel created: ${branchChannel.name}");
+				}catch(error){
+					console.error("Error creating channel: "+ error);
+					return res.status(400).send("Error creating channel: ${error}");
+				}
+			}
+			try {
+				// Send the message to the branch channel
+				await branchChannel.send({ embeds: [discordEmbed] });
+				console.log('Message sent to branch channel');
+			} catch (error) {
+				console.error('Error sending message to branch channel: ' + error);
+				return res.status(500).send('Error sending message to branch channel:' +error);
 			}
 		}
-		try {
-			// Send the message to the branch channel
-			await branchChannel.send({ embeds: [discordEmbed] });
-			console.log('Message sent to branch channel');
-		} catch (error) {
-			console.error('Error sending message to branch channel: ' + error);
-			return res.status(500).send('Error sending message to branch channel:' +error);
-		}
 	
-		// Now send the message to the webhook
+		// Now send the message to the webhook (all channel)
 		try {
 			await axios.post(discordWebhookUrl, {
 				embeds: [discordEmbed.toJSON()]
@@ -165,10 +174,6 @@ async function run()
 	client.on(Events.MessageCreate, async message => {
 		// Define the specific channel ID
 	
-	
-		// UNCOMMENT THIS WHEN TIME TO DEMO
-	
-	
 		const allChannel = getAllChannel();
 		if (!allChannel)
 		{
@@ -177,10 +182,6 @@ async function run()
 		}
 	
 		const specificChannelId = allChannel.id;
-	
-		// COMMENT THIS OUT WHEN TIME TO DEMO
-		// specificChannelId = allChannelID;
-	
 	
 		if (message.channel.id !== specificChannelId) return;
 	
