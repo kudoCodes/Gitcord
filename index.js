@@ -4,9 +4,11 @@ const path = require('node:path');
 const express = require('express');
 const axios = require('axios');
 const bodyParser = require('body-parser');
-const { Client, Collection, Events, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, EmbedBuilder, PermissionsBitField, ChannelType } = require('discord.js');
 const { token, allChannelID, dbUrl, dbName, collectionName } = require('./config.json');
 const { MongoClient } = require("mongodb");
+const { permission } = require('node:process');
+const { channel } = require('node:diagnostics_channel');
 
 let collection;
 async function run()
@@ -46,16 +48,54 @@ async function run()
 	
 		// Forward the message to the Discord webhook
 		const discordWebhookUrl = await findWebhook(repository.name);
+		const guildId = await findGuildId(repository.name);
+
+		if(!guildId || !discordWebhookUrl){
+			console.error("No webhook or guild id found for " + repository.name);
+			return res.status(400).send("No webhook or guild id found for " + repository.name);
+		}
+		//Get guild from guild id
+		const guild = client.guilds.cache.get(guildId);
+
+		if(!guild){
+			console.error("No guild found for " + guildId);
+			return res.status(400).send("No guild found for " + guildId);
+		}
+		//Check if channel for brnach exists
+		let branchChannel = guild.channels.cache.find(channel => channel.name === branch && channel.type === 'GUILD_TEXT');
+		const categoryChannel = guild.channels.cache.find(channel => channel.type === ChannelType.GuildCategory && channel.name === repository.name);
+		if(!branchChannel){
+			try{
+				branchChannel = await guild.channels.create({
+					name: branch,
+					type: ChannelType.GuildText,
+					parent: categoryChannel.id,
+				});
+				console.log("Channel created: ${branchChannel.name}");
+			}catch(error){
+				console.error("Error creating channel: "+ error);
+				return res.status(400).send("Error creating channel: ${error}");
+			}
+		}
+		try {
+			// Send the message to the branch channel
+			await branchChannel.send({ embeds: [discordEmbed] });
+			console.log('Message sent to branch channel');
+		} catch (error) {
+			console.error('Error sending message to branch channel: ' + error);
+			return res.status(500).send('Error sending message to branch channel:' +error);
+		}
 	
+		// Now send the message to the webhook
 		try {
 			await axios.post(discordWebhookUrl, {
 				embeds: [discordEmbed.toJSON()]
 			});
-			console.log('Message sent to Discord!');
-			res.status(200).send('Webhook received and message sent to Discord!');
+			console.log('Message sent to Discord via webhook!');
+			return res.status(200).send('Webhook received and message sent to Discord!');
 		} catch (error) {
-			console.error('Error sending message to Discord:', error);
-			res.status(500).send('Failed to send message to Discord');
+			console.error('Error sending message to Discord via webhook:', error);
+			return res.status(500).send('Failed to send message to Discord via webhook');
 		}
 	});
 	
@@ -63,6 +103,7 @@ async function run()
 		console.log(`GitHub webhook listener running on port ${port}`);
 	});
 	
+
 	// Create a new client instance
 	const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 	

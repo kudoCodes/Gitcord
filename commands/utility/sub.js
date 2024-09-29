@@ -31,7 +31,7 @@ async function execute(interaction) {
             name: repoName,
             type: ChannelType.GuildCategory,
         });
-
+        
         // Create the text channel inside the category
         
         allChannel = await interaction.guild.channels.create({
