@@ -16,6 +16,7 @@ const port = 3000;
 // Parse incoming GitHub payloads as JSON
 app.use(bodyParser.json());
 
+const { getWebhookUrl } = require('./commands/utility/sub.js');
 app.post('/', async (req, res) => {
     const payload = req.body;
 
@@ -37,7 +38,7 @@ app.post('/', async (req, res) => {
         .setTimestamp();
 
     // Forward the message to the Discord webhook
-    const discordWebhookUrl = 'https://discord.com/api/webhooks/1289738600828764271/oorb89Z6Gx7xU_bjrBTnA8bFQQk4McOkyK7Klv5qRhTMxNv_GHpDpwhznhUc1Axe2jG4';
+    const discordWebhookUrl = getWebhookUrl();
 
     try {
         await axios.post(discordWebhookUrl, {
@@ -120,17 +121,17 @@ client.on(Events.MessageCreate, async message => {
 	// UNCOMMENT THIS WHEN TIME TO DEMO
 
 
-	// const allChannel = getAllChannel();
-	// if (!allChannel)
-	// {
-	// 	console.error("allChannel is not defined");
-	// 	return;
-	// }
+	const allChannel = getAllChannel();
+	if (!allChannel)
+	{
+		console.error("allChannel is not defined");
+		return;
+	}
 
-	// const specificChannelId = allChannel.id;
+	const specificChannelId = allChannel.id;
 
 	// COMMENT THIS OUT WHEN TIME TO DEMO
-	specificChannelId = allChannelID;
+	// specificChannelId = allChannelID;
 
 
 	if (message.channel.id !== specificChannelId) return;

@@ -1,3 +1,4 @@
+const { get } = require("animejs");
 const { SlashCommandBuilder, ChannelType, EmbedBuilder } = require("discord.js");
 
 // Array of colors from your logo for the gradient effect
@@ -14,7 +15,7 @@ const commandData = new SlashCommandBuilder()
             .setRequired(true));
 
 let allChannel; // Declare allChannel here to export it later
-
+let webhookUrl; // Declare webhookUrl here to export it later
 async function execute(interaction) {
     try {
         const name = interaction.options.getString('reponame');
@@ -41,7 +42,7 @@ async function execute(interaction) {
         });
         
         // Construct the webhook URL
-        const webhookUrl = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}/github`;
+        webhookUrl = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}`;
         console.log(`Webhook created! URL: ${webhookUrl}`);
 
         // Randomly select a color from the array for the embed
@@ -69,7 +70,12 @@ function getAllChannel() {
     return allChannel;
 }
 
+function getWebhookUrl() {
+    return webhookUrl;
+}
+
 // Export the command data, execute function, and allChannel object
 exports.data = commandData;
 exports.execute = execute;
 exports.getAllChannel = getAllChannel;
+exports.getWebhookUrl = getWebhookUrl;
