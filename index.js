@@ -167,25 +167,6 @@ async function run()
 			}
 		}
 	});
-	
-	
-	const { getAllChannel } = require('./commands/utility/sub.js');
-	
-	client.on(Events.MessageCreate, async message => {
-		// Define the specific channel ID
-	
-		const allChannel = getAllChannel();
-		if (!allChannel)
-		{
-			console.error("allChannel is not defined");
-			return;
-		}
-	
-		const specificChannelId = allChannel.id;
-	
-		if (message.channel.id !== specificChannelId) return;
-	
-	});
 }
 
 async function findWebhook(repoName)
