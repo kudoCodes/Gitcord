@@ -5,7 +5,7 @@ const express = require('express');
 const axios = require('axios');
 const bodyParser = require('body-parser');
 const { Client, Collection, Events, GatewayIntentBits, EmbedBuilder, PermissionsBitField, ChannelType } = require('discord.js');
-const { token, dbUrl, dbName, collectionName } = require('./config.json');
+const { token, dbUrl, dbName, collectionName, websiteURL } = require('./config.json');
 const { MongoClient } = require("mongodb");
 const { ok } = require('node:assert');
 
@@ -35,7 +35,7 @@ async function run()
 		console.log('GitHub webhook payload received:');
 		// Extract relevant information from the GitHub payload
 		const { pusher, repository, ref, head_commit, deleted } = payload;
-		const branch = ref.split('/').pop(); // Get branch name
+		const branch = ref.split('/').pop().toLowerCase(); // Get branch name
 		let commitMessage = head_commit ? head_commit.message : 'No commit message provided';
 		if (deleted)
 		{
@@ -53,8 +53,8 @@ async function run()
 			.setTimestamp();
 	
 		// Forward the message to the Discord webhook
-		const discordWebhookUrl = await findWebhook(repository.name);
-		const guildId = await findGuildId(repository.name);
+		const discordWebhookUrl = await findWebhook(repository.name.toLowerCase());
+		const guildId = await findGuildId(repository.name.toLowerCase());
 
 		if(!guildId || !discordWebhookUrl){
 			console.error("No webhook or guild id found for " + repository.name);
@@ -68,9 +68,9 @@ async function run()
 			return res.status(400).send("No guild found for " + guildId);
 		}
 		//Check if channel for branch exists
-		let branchChannel = guild.channels.cache.find(channel => channel.name === branch && channel.type === ChannelType.GuildText && channel.parent.name === repository.name);
+		let branchChannel = guild.channels.cache.find(channel => channel.name.toLowerCase() === branch.toLowerCase() && channel.type === ChannelType.GuildText && channel.parent.name.toLowerCase() === repository.name.toLowerCase());
 		console.log("Branch channel: " + branchChannel);
-		const categoryChannel = guild.channels.cache.find(channel => channel.type === ChannelType.GuildCategory && channel.name === repository.name);
+		const categoryChannel = guild.channels.cache.find(channel => channel.type === ChannelType.GuildCategory && channel.name.toLowerCase() === repository.name.toLowerCase());
 		if (deleted)
 		{
 			console.log('Branch deleted, deleting channel');

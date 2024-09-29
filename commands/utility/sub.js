@@ -1,5 +1,6 @@
-const { SlashCommandBuilder, ChannelType, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, ChannelType, EmbedBuilder, GuildInviteManager } = require("discord.js");
 const { findWebhook, addValues } = require("../../index.js");
+const { websiteURL } = require("../../config.json");
 
 // Array of colors from your logo for the gradient effect
 const colors = ['#FF7F50', '#87CEEB', '#FF69B4', '#FFD700', '#ADFF2F']; // Customize these as per your logo
@@ -19,9 +20,11 @@ let webhookUrl; // Declare webhookUrl here to export it later
 let repoName; // Declare repoName here to export it later
 async function execute(interaction) {
     try {
+        
+        
         repoName = interaction.options.getString('reponame');
         // Check if the webhook already exists
-        webhookUrl = await findWebhook(repoName);
+        webhookUrl = await findWebhook(repoName.toLowerCase());
         if (webhookUrl) {
             await interaction.reply(`Webhook already exists for ${repoName}`);
             return;
@@ -53,7 +56,7 @@ async function execute(interaction) {
         console.log(`Webhook created! URL: ${webhookUrl}`);
 
         // Add the webhook to the database
-        await addValues(repoName, webhookUrl, interaction.guild.id);
+        await addValues(repoName.toLowerCase(), webhookUrl, interaction.guild.id);
 
         // Randomly select a color from the array for the embed
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
@@ -62,8 +65,8 @@ async function execute(interaction) {
         const embed = new EmbedBuilder()
             .setColor(randomColor) // Set the embed color
             .setTitle(`GitCord Webhook Created`)
-            .setDescription(`Add Webhook URL on your GitHub repo for integration: ${webhookUrl}`)
-            .addFields({ name: 'Instructions:', value: 'Ensure Content Type is application/json in your GitHub webhook settings.' })
+            .setDescription(`Add Webhook URL on your GitHub repo for integration: ${websiteURL}`)
+            .addFields({ name: 'Instructions:', value: 'Ensure Content Type is application/json in your GitHub webhook settings., check only pushes' })
             .setFooter({ text: 'GitCord - Stay Connected with GitHub on Discord!' })
             .setTimestamp();
 

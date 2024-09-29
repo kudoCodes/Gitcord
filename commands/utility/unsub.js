@@ -27,7 +27,7 @@ async function execute(interaction) {
     await interaction.reply(`No category found for repository: ${repoName}`);
     return;
   }
-
+  console.log(`\n\nFound category: ${category.name}\n\n`);
   // Get all channels that belong to this category
   const channels = interaction.guild.channels.cache.filter(channel => channel.parentId === category.id);
 
