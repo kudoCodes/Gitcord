@@ -42,7 +42,7 @@ async function execute(interaction) {
   // Send a single message to the user after all operations
   await interaction.reply(`Github repository '${category.name}' has been removed from the server.`);
 
-  await deleteRepo(repoName);
+  await deleteRepo(category.name);
 }
 
 // Export the command data and execute function
