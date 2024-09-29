@@ -8,27 +8,20 @@ const { Client, Collection, Events, GatewayIntentBits, EmbedBuilder } = require(
 const { token, allChannelID, dbUrl, dbName, collectionName } = require('./config.json');
 const { MongoClient } = require("mongodb");
 
+let collection;
 async function run()
 {
 	const mongoClient = new MongoClient(dbUrl);
+	await mongoClient.connect();
+	const database = mongoClient.db(dbName);
+	collection = database.collection(collectionName);
 	const app = express();
 	const port = 3000;
 	
 	// to run server -> NGROK_AUTHTOKEN=2missw90S3jZUXXf3g1qzT4bek8_ChD9ADBRCEPQhoQtySxL node index.js
 	
-	// Parse incoming GitHub payloads as JSON
-	await mongoClient.connect();
-	const database = mongoClient.db(dbName);
-	const collection = database.collection(collectionName);
-	
-	try {
-		const res = await collection.findOne({ gloobert: 'shmoobert' });
-		console.log("gloobert detected: " + res.gloobert);
-	} catch (error) {
-		console.error("Error finding gloobert: " + error);
-	}
+	// Parse incoming GitHub payloads as JSON	
 
-	await mongoClient.close();
 	app.use(bodyParser.json());
 	
 	const { getWebhookUrl } = require('./commands/utility/sub.js');
@@ -36,7 +29,6 @@ async function run()
 		const payload = req.body;
 	
 		console.log('GitHub webhook payload received:');
-		console.log(JSON.stringify(payload, null, 2)); // Logs the entire payload for inspection
 	
 		// Extract relevant information from the GitHub payload
 		const { pusher, repository, ref, head_commit } = payload;
@@ -53,7 +45,7 @@ async function run()
 			.setTimestamp();
 	
 		// Forward the message to the Discord webhook
-		const discordWebhookUrl = getWebhookUrl();
+		const discordWebhookUrl = await findWebhook(repository.name);
 	
 		try {
 			await axios.post(discordWebhookUrl, {
@@ -151,7 +143,55 @@ async function run()
 	
 		if (message.channel.id !== specificChannelId) return;
 	
-		console.log(message);
 	});
 }
+
+async function findWebhook(repoName)
+{
+	const projection = {[repoName] : {'$exists': 1}}; // Use square brackets for dynamic field name
+    const webhook = await collection.findOne(projection);
+
+    if (webhook && webhook[repoName]) {
+      console.log(`Webhook found for ${repoName}:`, webhook[repoName].values.webhook);
+      return webhook[repoName].values.webhook; // Return the value associated with the repoName field
+    } else {
+      console.log(`No webhook found for ${repoName}`);
+      return null;
+    }
+}
+
+async function findGuildId(repoName)
+{
+	const projection = {[repoName] : {'$exists': 1}}; // Use square brackets for dynamic field name
+	const webhook = await collection.findOne(projection);
+
+	if (webhook && webhook[repoName]) {
+	  console.log(`Guild id found for ${repoName}:`, webhook[repoName].values.guild);
+	  return webhook[repoName].values.guild; // Return the value associated with the repoName field
+	} else {
+	  console.log(`No Guild id found for ${repoName}`);
+	  return null;
+	}
+}
+
+async function addValues(repoName, webhookUrl, guildId)
+{
+	const add = { [repoName]: {values : 
+			{
+				webhook : webhookUrl,
+				guild : guildId
+			}
+		}
+	};
+
+
+	await collection.insertOne(add);
+
+	console.log(`Repo info populated for ${repoName}:`);
+}
+
+exports.findWebhook = findWebhook;
+exports.addValues = addValues;
+exports.findGuildId = findGuildId;
+
 run().catch(console.dir);

@@ -1,5 +1,5 @@
-const { get } = require("animejs");
 const { SlashCommandBuilder, ChannelType, EmbedBuilder } = require("discord.js");
+const { findWebhook, addValues, findGuildId } = require("../../index.js");
 
 // Array of colors from your logo for the gradient effect
 const colors = ['#FF7F50', '#87CEEB', '#FF69B4', '#FFD700', '#ADFF2F']; // Customize these as per your logo
@@ -16,14 +16,19 @@ const commandData = new SlashCommandBuilder()
 
 let allChannel; // Declare allChannel here to export it later
 let webhookUrl; // Declare webhookUrl here to export it later
-let repoName;
+let repoName; // Declare repoName here to export it later
 async function execute(interaction) {
     try {
         repoName = interaction.options.getString('reponame');
-
+        // Check if the webhook already exists
+        webhookUrl = await findWebhook(repoName);
+        if (webhookUrl) {
+            await interaction.reply(`Webhook already exists for ${repoName}`);
+            return;
+        }
         // Create the category
         const category = await interaction.guild.channels.create({
-            name: name,
+            name: repoName,
             type: ChannelType.GuildCategory,
         });
 
@@ -35,7 +40,7 @@ async function execute(interaction) {
             parent: category,
         });
 
-        await interaction.reply(`Repo ${name} created`);
+        await interaction.reply(`Repo ${repoName} created`);
 
         // Create the webhook in the text channel
         const webhook = await allChannel.createWebhook({
@@ -46,6 +51,9 @@ async function execute(interaction) {
         // Construct the webhook URL
         webhookUrl = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}`;
         console.log(`Webhook created! URL: ${webhookUrl}`);
+
+        // Add the webhook to the database
+        await addValues(repoName, webhookUrl, interaction.guild.id);
 
         // Randomly select a color from the array for the embed
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
