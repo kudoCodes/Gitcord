@@ -36,7 +36,7 @@ async function execute(interaction) {
 
         // Create the webhook in the text channel
         const webhook = await allChannel.createWebhook({
-            name: 'GitCord Webhook', // Webhook name
+            name: 'GitCord', // Webhook name
             reason: 'Webhook for GitHub integration', // Reason for creating the webhook
         });
         
