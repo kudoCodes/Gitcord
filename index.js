@@ -7,7 +7,6 @@ const bodyParser = require('body-parser');
 const { Client, Collection, Events, GatewayIntentBits, EmbedBuilder, PermissionsBitField, ChannelType } = require('discord.js');
 const { token, dbUrl, dbName, collectionName, websiteURL } = require('./config.json');
 const { MongoClient } = require("mongodb");
-const { ok } = require('node:assert');
 
 let collection;
 async function run()
