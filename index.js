@@ -18,7 +18,7 @@ async function run()
 	const app = express();
 	const port = 3000;
 	
-	// to run server -> NGROK_AUTHTOKEN=2missw90S3jZUXXf3g1qzT4bek8_ChD9ADBRCEPQhoQtySxL node index.js
+	// to run server -> NGROKAUTHTOKEN node index.js
 	
 	// Parse incoming GitHub payloads as JSON	
 
